@@ -17,6 +17,7 @@ $SD.on('connected', (jsonObj) => connected(jsonObj));
 function connected(jsn) {
     // Subscribe to the willAppear and other events
     $SD.on('com.elgato.template.action.willAppear', (jsonObj) => action.onWillAppear(jsonObj));
+    $SD.on('com.elgato.template.action.willDisappear', (jsonObj) => action.onWillDisappear(jsonObj));
     $SD.on('com.elgato.template.action.keyUp', (jsonObj) => action.onKeyUp(jsonObj));
     $SD.on('com.elgato.template.action.sendToPlugin', (jsonObj) => action.onSendToPlugin(jsonObj));
     $SD.on('com.elgato.template.action.didReceiveSettings', (jsonObj) => action.onDidReceiveSettings(jsonObj));
@@ -31,7 +32,9 @@ function connected(jsn) {
 // ACTIONS
 
 const action = {
-    settings:{},
+    settings: {},
+    lottiePlayer: null,
+
     onDidReceiveSettings: function(jsn) {
         console.log('%c%s', 'color: white; background: red; font-size: 15px;', '[app.js]onDidReceiveSettings:');
 
@@ -46,7 +49,7 @@ const action = {
          * Here we look for this setting and use it to change the title of
          * the key.
          */
-
+        
          this.setTitle(jsn);
     },
 
@@ -75,6 +78,16 @@ const action = {
             this.settings.mynameinput = 'TEMPLATE';
         }
         this.setTitle(jsn);
+
+        lottiePlayer = new SDLottiePlayer();
+        lottiePlayer.play("res/lottie_anim_cube.json", true);
+        lottiePlayer.setAnimationUpdateListener(function () {
+            $SD.api.setImage(jsn.context, lottiePlayer.getImageData());
+        });
+    },
+
+    onWillDisappear: function (jsn) {
+        lottiePlayer.destroy();
     },
 
     onKeyUp: function (jsn) {
